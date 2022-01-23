@@ -1,0 +1,22 @@
+---
+- hosts: tomcat
+
+  become: yes
+  become_method: sudo
+  remote_user: ubuntu
+
+  tasks:
+
+   - name: Deploy War file
+     copy: 
+       src: /var/lib/jenkins/workspace/WarFileDeployment/helloworld.war
+       dest: /opt/tomcat/apache-tomcat-9.0.58/webapps/ 
+       remote_src: false
+
+   - name: Re-Start and enable Tomcat service
+     systemd:
+       name: tomcat
+       state: restarted
+       enabled: true
+       daemon_reload: true
+

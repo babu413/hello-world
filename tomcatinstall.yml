@@ -1,0 +1,47 @@
+---
+- hosts: tomcat
+
+  become: yes
+  become_method: sudo
+  remote_user: ubuntu
+  
+  tasks:
+   - name: Add "tomcat" group
+     group: name=tomcat
+
+   - name: Add "tomcat" user
+     user: name=tomcat group=tomcat home=/usr/share/tomcat createhome=no
+
+   - name: Create Tomcat installation Directory
+     file:
+       path: /opt/tomcat 
+       state: directory
+       mode: 0755
+
+   - name: Download Tomcat
+     get_url: url=https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.58/bin/apache-tomcat-9.0.58.tar.gz dest=/opt/tomcat
+
+   - name: Extract archive
+     unarchive: src=/opt/tomcat/apache-tomcat-9.0.58.tar.gz dest=/opt/tomcat remote_src=yes
+
+   - name: Change OwnerShip
+     file:
+       path: /opt/tomcat
+       owner: tomcat
+       group: tomcat
+       mode: 0755
+       state: directory
+       recurse: yes
+
+   - name: Copy Tomcat service
+     copy: 
+       src: /var/lib/jenkins/workspace/TomcatDeployment/tomcat.service
+       dest: /etc/systemd/system/
+       mode: 0755
+
+   - name: Start and enable Tomcat service
+     systemd:
+       name: tomcat
+       state: started
+       enabled: true
+       daemon_reload: true
